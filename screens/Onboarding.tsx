@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ArrowRight, Camera, Info } from 'lucide-react'
 import { useStore } from '@/lib/store'
+import { getSupabase } from '@/lib/supabase'
 
 const TRAINING_GOALS = [
   'Strength', 'Cardio', 'HIIT', 'CrossFit',
@@ -15,7 +16,7 @@ const TIME_SLOTS = ['Early AM', 'Morning', 'Lunch', 'Evening', 'Night']
 const SCREENS: Array<'ob1' | 'ob2' | 'ob3' | 'ob4'> = ['ob1', 'ob2', 'ob3', 'ob4']
 
 export default function Onboarding() {
-  const go = useStore((s) => s.go)
+  const { go, setHasProfile, user } = useStore()
   const screen = useStore((s) => s.screen)
   const stepIndex = SCREENS.indexOf(screen as 'ob1' | 'ob2' | 'ob3' | 'ob4')
   const step = stepIndex + 1
@@ -47,8 +48,22 @@ export default function Onboarding() {
     else go(SCREENS[stepIndex - 1])
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 4) {
+      if (user) {
+        const supabase = getSupabase()
+        await supabase.from('profiles').upsert({
+          id: user.id,
+          full_name: (user.user_metadata?.full_name as string) || 'Athlete',
+          goals: selectedGoals,
+          train_days: trainFreq,
+          schedule: selectedTimes,
+          bio,
+          gym_name: gymName,
+          is_active: true,
+        })
+        setHasProfile(true)
+      }
       go('discover')
     } else {
       go(SCREENS[stepIndex + 1])

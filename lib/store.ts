@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { User } from '@supabase/supabase-js'
 
 export type Screen =
   | 'land'
@@ -22,11 +23,15 @@ interface StoreState {
   chatWith: string | null
   matchOverlay: boolean
   unreadCount: number
+  user: User | null
+  hasProfile: boolean
   go: (screen: Screen) => void
   openChat: (userId: string) => void
   showMatch: () => void
   hideMatch: () => void
   setUnread: (count: number) => void
+  setUser: (user: User | null) => void
+  setHasProfile: (v: boolean) => void
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -34,6 +39,8 @@ export const useStore = create<StoreState>((set) => ({
   chatWith: null,
   matchOverlay: false,
   unreadCount: 3,
+  user: null,
+  hasProfile: false,
 
   go: (screen) => set({ screen }),
 
@@ -44,4 +51,6 @@ export const useStore = create<StoreState>((set) => ({
   hideMatch: () => set({ matchOverlay: false }),
 
   setUnread: (count) => set({ unreadCount: count }),
+  setUser: (user) => set({ user }),
+  setHasProfile: (hasProfile) => set({ hasProfile }),
 }))

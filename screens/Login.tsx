@@ -5,20 +5,58 @@ import { motion } from 'framer-motion'
 import { Eye, EyeOff, ArrowRight } from 'lucide-react'
 import Logo from '@/components/Logo'
 import { useStore } from '@/lib/store'
+import { getSupabase } from '@/lib/supabase'
 
 export default function Login() {
-  const go = useStore((s) => s.go)
+  const { go, setUser, setHasProfile } = useStore()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
+    if (!email || !password) { setError('Enter email and password'); return }
     setLoading(true)
-    setTimeout(() => {
+    setError('')
+
+    const supabase = getSupabase()
+    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (authError) {
+      setError(authError.message)
       setLoading(false)
+      return
+    }
+
+    setUser(data.user)
+
+    // Check if profile exists
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', data.user.id)
+      .single()
+
+    if (profile) {
+      setHasProfile(true)
       go('discover')
-    }, 900)
+    } else {
+      setHasProfile(false)
+      go('ob1')
+    }
+
+    setLoading(false)
+  }
+
+  const handleForgotPassword = async () => {
+    if (!email) { setError('Enter your email first'); return }
+    const supabase = getSupabase()
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    })
+    if (resetError) setError(resetError.message)
+    else setError('Check your email for a reset link')
   }
 
   const inputStyle = {
@@ -45,7 +83,6 @@ export default function Login() {
         overflow: 'hidden',
       }}
     >
-      {/* Background glow */}
       <div
         style={{
           position: 'absolute',
@@ -70,7 +107,6 @@ export default function Login() {
           zIndex: 1,
         }}
       >
-        {/* Logo */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -79,7 +115,6 @@ export default function Login() {
           <Logo size={32} />
         </motion.div>
 
-        {/* Heading */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -103,13 +138,28 @@ export default function Login() {
           </p>
         </motion.div>
 
-        {/* Form */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.18 }}
           style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
         >
+          {error && (
+            <div style={{
+              padding: '12px 14px',
+              borderRadius: 10,
+              background: error.includes('Check your email')
+                ? 'rgba(200,255,0,0.1)'
+                : 'rgba(255,77,109,0.12)',
+              border: `1px solid ${error.includes('Check your email') ? 'rgba(200,255,0,0.2)' : 'rgba(255,77,109,0.2)'}`,
+              color: error.includes('Check your email') ? 'var(--volt)' : 'var(--danger)',
+              fontSize: 13,
+              fontWeight: 500,
+            }}>
+              {error}
+            </div>
+          )}
+
           <div>
             <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
               Email
@@ -119,6 +169,7 @@ export default function Login() {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSignIn()}
               style={inputStyle}
             />
           </div>
@@ -133,6 +184,7 @@ export default function Login() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSignIn()}
                 style={{ ...inputStyle, paddingRight: 48 }}
               />
               <button
@@ -156,6 +208,7 @@ export default function Login() {
           </div>
 
           <button
+            onClick={handleForgotPassword}
             style={{
               background: 'none',
               border: 'none',
@@ -206,14 +259,11 @@ export default function Login() {
                 Signing in...
               </span>
             ) : (
-              <>
-                Sign in <ArrowRight size={18} />
-              </>
+              <>Sign in <ArrowRight size={18} /></>
             )}
           </button>
         </motion.div>
 
-        {/* Divider */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -225,15 +275,14 @@ export default function Login() {
           <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
         </motion.div>
 
-        {/* Social login hint */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.35 }}
-          style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
         >
           <button
             style={{
+              width: '100%',
               padding: '14px',
               borderRadius: 12,
               background: 'rgba(255,255,255,0.05)',
@@ -253,7 +302,6 @@ export default function Login() {
           </button>
         </motion.div>
 
-        {/* Register link */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -279,9 +327,7 @@ export default function Login() {
         </motion.div>
       </div>
 
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }

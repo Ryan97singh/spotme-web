@@ -8,37 +8,52 @@ import SwipeCard from '@/components/SwipeCard'
 import MatchOverlay from '@/components/MatchOverlay'
 import { useStore } from '@/lib/store'
 import { PROFILES } from '@/lib/data'
+import { getSupabase } from '@/lib/supabase'
 
 export default function Discover() {
   const go = useStore((s) => s.go)
   const unreadCount = useStore((s) => s.unreadCount)
   const showMatch = useStore((s) => s.showMatch)
+  const user = useStore((s) => s.user)
 
   const [stack, setStack] = useState(PROFILES.slice())
   const [lastMatched, setLastMatched] = useState<string | undefined>()
 
+  const recordSwipe = async (swipedId: string, direction: 'like' | 'pass' | 'super') => {
+    if (!user) return
+    const supabase = getSupabase()
+    await supabase.from('swipes').insert({ swiper_id: user.id, swiped_id: swipedId, direction })
+  }
+
   const handleLike = useCallback(() => {
     const top = stack[0]
     if (!top) return
+    recordSwipe(top.id, 'like')
     const willMatch = Math.random() < 0.2
     if (willMatch) {
       setLastMatched(top.id)
       showMatch()
     }
     setStack((prev) => prev.slice(1))
-  }, [stack, showMatch])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stack, showMatch, user])
 
   const handlePass = useCallback(() => {
+    const top = stack[0]
+    if (top) recordSwipe(top.id, 'pass')
     setStack((prev) => prev.slice(1))
-  }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stack, user])
 
   const handleSuper = useCallback(() => {
     const top = stack[0]
     if (!top) return
+    recordSwipe(top.id, 'super')
     setLastMatched(top.id)
     showMatch()
     setStack((prev) => prev.slice(1))
-  }, [stack, showMatch])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stack, showMatch, user])
 
   const handleRefresh = () => {
     setStack(PROFILES.slice())

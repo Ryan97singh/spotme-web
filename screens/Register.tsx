@@ -5,21 +5,44 @@ import { motion } from 'framer-motion'
 import { Eye, EyeOff, ArrowRight, ChevronLeft } from 'lucide-react'
 import Logo from '@/components/Logo'
 import { useStore } from '@/lib/store'
+import { getSupabase } from '@/lib/supabase'
 
 export default function Register() {
-  const go = useStore((s) => s.go)
+  const { go, setUser } = useStore()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
+    if (!name.trim()) { setError('Enter your name'); return }
+    if (!email) { setError('Enter your email'); return }
+    if (password.length < 8) { setError('Password must be at least 8 characters'); return }
+
     setLoading(true)
-    setTimeout(() => {
+    setError('')
+
+    const supabase = getSupabase()
+    const { data, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: name },
+      },
+    })
+
+    if (authError) {
+      setError(authError.message)
       setLoading(false)
-      go('ob1')
-    }, 900)
+      return
+    }
+
+    setUser(data.user)
+    // New user — go through onboarding to build profile
+    go('ob1')
+    setLoading(false)
   }
 
   const inputStyle = {
@@ -44,6 +67,8 @@ export default function Register() {
     marginBottom: 6,
   }
 
+  const strength = Math.min(4, Math.floor(password.length / 3))
+
   return (
     <div
       style={{
@@ -55,7 +80,6 @@ export default function Register() {
         overflow: 'hidden',
       }}
     >
-      {/* Background glow */}
       <div
         style={{
           position: 'absolute',
@@ -79,7 +103,6 @@ export default function Register() {
           zIndex: 1,
         }}
       >
-        {/* Back */}
         <button
           onClick={() => go('land')}
           style={{
@@ -92,14 +115,12 @@ export default function Register() {
             color: 'rgba(255,255,255,0.5)',
             display: 'flex',
             alignItems: 'center',
-            gap: 4,
             padding: '8px',
           }}
         >
           <ChevronLeft size={20} />
         </button>
 
-        {/* Logo */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -108,7 +129,6 @@ export default function Register() {
           <Logo size={32} />
         </motion.div>
 
-        {/* Heading */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -132,13 +152,26 @@ export default function Register() {
           </p>
         </motion.div>
 
-        {/* Form */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.18 }}
           style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
         >
+          {error && (
+            <div style={{
+              padding: '12px 14px',
+              borderRadius: 10,
+              background: 'rgba(255,77,109,0.12)',
+              border: '1px solid rgba(255,77,109,0.2)',
+              color: 'var(--danger)',
+              fontSize: 13,
+              fontWeight: 500,
+            }}>
+              {error}
+            </div>
+          )}
+
           <div>
             <label style={labelStyle}>Your name</label>
             <input
@@ -169,6 +202,7 @@ export default function Register() {
                 placeholder="Min. 8 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
                 style={{ ...inputStyle, paddingRight: 48 }}
               />
               <button
@@ -191,30 +225,23 @@ export default function Register() {
             </div>
           </div>
 
-          {/* Password strength bar */}
           {password.length > 0 && (
-            <div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    style={{
-                      flex: 1,
-                      height: 3,
-                      borderRadius: 2,
-                      background:
-                        password.length >= i * 3
-                          ? i <= 1
-                            ? 'var(--danger)'
-                            : i <= 2
-                            ? 'var(--warn)'
-                            : 'var(--volt)'
-                          : 'rgba(255,255,255,0.1)',
-                      transition: 'background 0.2s ease',
-                    }}
-                  />
-                ))}
-              </div>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  style={{
+                    flex: 1,
+                    height: 3,
+                    borderRadius: 2,
+                    background:
+                      i <= strength
+                        ? i <= 1 ? 'var(--danger)' : i <= 2 ? 'var(--warn)' : 'var(--volt)'
+                        : 'rgba(255,255,255,0.1)',
+                    transition: 'background 0.2s ease',
+                  }}
+                />
+              ))}
             </div>
           )}
 
@@ -255,9 +282,7 @@ export default function Register() {
                 Creating account...
               </>
             ) : (
-              <>
-                Create account <ArrowRight size={18} />
-              </>
+              <>Create account <ArrowRight size={18} /></>
             )}
           </button>
 
@@ -269,7 +294,6 @@ export default function Register() {
           </p>
         </motion.div>
 
-        {/* Sign in link */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -295,9 +319,7 @@ export default function Register() {
         </motion.div>
       </div>
 
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }

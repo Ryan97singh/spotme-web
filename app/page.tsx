@@ -1,8 +1,10 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useStore } from '@/lib/store'
 import type { Screen } from '@/lib/store'
 import BottomNav from '@/components/BottomNav'
+import { getSupabase } from '@/lib/supabase'
 
 import Landing from '@/screens/Landing'
 import Login from '@/screens/Login'
@@ -131,7 +133,39 @@ function MapPlaceholder() {
 
 export default function Page() {
   const screen = useStore((s) => s.screen)
+  const { go, setUser, setHasProfile } = useStore()
   const showNav = APP_SCREENS.includes(screen)
+
+  // Restore session on mount
+  useEffect(() => {
+    const supabase = getSupabase()
+
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return
+      setUser(session.user)
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', session.user.id)
+        .single()
+
+      if (profile) {
+        setHasProfile(true)
+        go('discover')
+      } else {
+        go('ob1')
+      }
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+      if (!session) go('land')
+    })
+
+    return () => subscription.unsubscribe()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <>
