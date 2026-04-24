@@ -1,0 +1,105 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  /* Backgrounds */
+  --bg: #0D0B14;
+  --surface: #13101E;
+  --elevated: #1C1828;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.12);
+
+  /* Brand */
+  --volt: #C8FF00;
+  --volt2: #A8D900;
+  --volt-dim: rgba(200,255,0,0.12);
+  --volt-glow: rgba(200,255,0,0.25);
+  --rose: #FF6B9D;
+  --rose2: #E0547F;
+  --rose-dim: rgba(255,107,157,0.12);
+  --rose-glow: rgba(255,107,157,0.25);
+  --blue: #00C2FF;
+  --danger: #FF4D6D;
+  --warn: #FFB020;
+  --online: #00E676;
+
+  /* Typography */
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-ui: 'Inter', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: #09060F;
+  font-family: var(--font-ui);
+  color: #F5F7FA;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* Glass utilities */
+.glass {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.09);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.glass-bar {
+  background: rgba(13,11,20,0.82);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.glass-nav {
+  background: rgba(13,11,20,0.88);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 -4px 24px rgba(0,0,0,0.4);
+}
+
+.glass-sheet {
+  background: rgba(19,16,30,0.94);
+  backdrop-filter: blur(40px) saturate(220%);
+  -webkit-backdrop-filter: blur(40px) saturate(220%);
+  border-top: 1px solid rgba(255,255,255,0.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 -20px 60px rgba(0,0,0,0.5);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--volt), var(--rose));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Swipe card drag */
+.swipe-card { touch-action: none; user-select: none; }
+
+/* Scrollbar hidden */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Avatar ring */
+.ring-volt { box-shadow: 0 0 0 2px var(--volt); }
+.ring-rose { box-shadow: 0 0 0 2px var(--rose); }
+
+/* Pulse animation for live badge */
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.pulse { animation: pulse-live 1.5s ease-in-out infinite; }
+
+/* Screen slide transitions */
+.screen-enter { opacity: 0; transform: translateX(20px); }
+.screen-enter-active { opacity: 1; transform: translateX(0); transition: all 0.25s ease; }
+
+/* Custom range */
+input[type=range] { accent-color: var(--volt); }
