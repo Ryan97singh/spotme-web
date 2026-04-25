@@ -37,14 +37,29 @@ export default function Profile() {
     })
   }, [user])
 
-  // Step 1: user picks a file → show crop modal
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Step 1: user picks a file → show crop modal (converts HEIC to JPEG first)
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    // Reset input so same file can be re-selected
     e.target.value = ''
-    const url = URL.createObjectURL(file)
-    setCropSrc(url)
+
+    const isHeic = /\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif'
+    if (isHeic) {
+      try {
+        const bitmap = await createImageBitmap(file)
+        const canvas = document.createElement('canvas')
+        canvas.width = bitmap.width
+        canvas.height = bitmap.height
+        canvas.getContext('2d')!.drawImage(bitmap, 0, 0)
+        const jpeg = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/jpeg', 0.92))
+        if (jpeg) { setCropSrc(URL.createObjectURL(jpeg)); return }
+      } catch {
+        showToast('HEIC not supported on this browser — please use JPG or PNG.', 'error', 4000)
+        return
+      }
+    }
+
+    setCropSrc(URL.createObjectURL(file))
   }
 
   // Step 2: crop confirmed → optimistic preview + upload
