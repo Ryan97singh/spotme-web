@@ -16,7 +16,18 @@ export default function Profile() {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [cropSrc, setCropSrc] = useState<string | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ msg: string; type: 'loading' | 'success' | 'error' } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const showToast = (msg: string, type: 'loading' | 'success' | 'error', autoDismiss = 0) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    setToast({ msg, type })
+    if (autoDismiss > 0) {
+      toastTimer.current = setTimeout(() => setToast(null), autoDismiss)
+    }
+  }
 
   useEffect(() => {
     if (!user) { setLoading(false); return }
@@ -36,16 +47,27 @@ export default function Profile() {
     setCropSrc(url)
   }
 
-  // Step 2: crop confirmed → upload the cropped blob
+  // Step 2: crop confirmed → optimistic preview + upload
   const handleCropConfirm = async (blob: Blob) => {
     if (!user) return
     setCropSrc(null)
+
+    // Instantly show the cropped image without waiting for upload
+    const localUrl = URL.createObjectURL(blob)
+    setPreviewUrl(localUrl)
+    showToast('Uploading photo…', 'loading')
     setUploading(true)
+
     const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' })
     const url = await uploadAvatar(user.id, file)
     if (url) {
       await updateProfile(user.id, { avatar_url: url })
       setProfile((prev) => prev ? { ...prev, avatar_url: url } : prev)
+      setPreviewUrl(null) // swap to the real CDN URL
+      showToast('Profile photo updated!', 'success', 3000)
+    } else {
+      setPreviewUrl(null) // revert
+      showToast('Upload failed. Try again.', 'error', 3000)
     }
     setUploading(false)
   }
@@ -77,7 +99,7 @@ export default function Profile() {
     { label: 'Train days', value: `${profile?.train_days ?? 0}/wk`, color: 'var(--online)' },
   ]
 
-  const avatarSrc = profile?.avatar_url ?? `https://i.pravatar.cc/400?u=${user?.id}`
+  const avatarSrc = previewUrl ?? profile?.avatar_url ?? `https://i.pravatar.cc/400?u=${user?.id}`
 
   return (
     <div
@@ -265,6 +287,47 @@ export default function Profile() {
           <ChevronRight size={18} color="rgba(255,255,255,0.3)" />
         </button>
       </div>
+      {/* Toast notification */}
+      {toast && (
+        <motion.div
+          key={toast.msg}
+          initial={{ opacity: 0, y: 40, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20 }}
+          style={{
+            position: 'fixed',
+            bottom: 90,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '12px 20px',
+            borderRadius: 16,
+            background: toast.type === 'success' ? 'rgba(0,230,118,0.15)' : toast.type === 'error' ? 'rgba(255,107,157,0.15)' : 'rgba(200,255,0,0.12)',
+            border: `1px solid ${toast.type === 'success' ? 'rgba(0,230,118,0.4)' : toast.type === 'error' ? 'rgba(255,107,157,0.4)' : 'rgba(200,255,0,0.3)'}`,
+            backdropFilter: 'blur(16px)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            zIndex: 1000,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {toast.type === 'loading' && (
+            <div style={{ width: 16, height: 16, border: '2px solid rgba(200,255,0,0.2)', borderTopColor: 'var(--volt)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
+          )}
+          {toast.type === 'success' && <span style={{ fontSize: 16 }}>✓</span>}
+          {toast.type === 'error' && <span style={{ fontSize: 16 }}>✕</span>}
+          <span style={{
+            fontFamily: 'Space Grotesk, sans-serif',
+            fontWeight: 600,
+            fontSize: 14,
+            color: toast.type === 'success' ? 'var(--online)' : toast.type === 'error' ? 'var(--rose)' : 'var(--volt)',
+          }}>
+            {toast.msg}
+          </span>
+        </motion.div>
+      )}
+
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )

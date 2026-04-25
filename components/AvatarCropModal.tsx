@@ -11,7 +11,7 @@ interface Props {
   onCancel: () => void
 }
 
-// croppedAreaPixels from react-easy-crop are in actual image pixels
+// Instagram-style compression: scale to 1080px, multi-pass quality targeting ≤300 KB
 async function cropImageToBlob(imageSrc: string, pixelCrop: Area): Promise<Blob> {
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const i = new Image()
@@ -19,12 +19,20 @@ async function cropImageToBlob(imageSrc: string, pixelCrop: Area): Promise<Blob>
     i.onerror = reject
     i.src = imageSrc
   })
-  const OUTPUT_SIZE = 600
+
+  // Cap output at 1080px (Instagram profile standard)
+  const OUTPUT_SIZE = Math.min(1080, Math.max(pixelCrop.width, pixelCrop.height))
+
   const canvas = document.createElement('canvas')
   canvas.width = OUTPUT_SIZE
   canvas.height = OUTPUT_SIZE
   const ctx = canvas.getContext('2d')!
 
+  // High-quality downsampling
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+
+  // Circular clip for profile photo
   ctx.beginPath()
   ctx.arc(OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, 0, Math.PI * 2)
   ctx.clip()
@@ -36,9 +44,28 @@ async function cropImageToBlob(imageSrc: string, pixelCrop: Area): Promise<Blob>
     0, 0, OUTPUT_SIZE, OUTPUT_SIZE
   )
 
-  return new Promise((resolve) => {
-    canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.92)
-  })
+  // Binary search for highest quality that stays ≤300 KB
+  const TARGET_BYTES = 300 * 1024
+  let lo = 0.5, hi = 0.95, best: Blob | null = null
+
+  for (let i = 0; i < 8; i++) {
+    const mid = (lo + hi) / 2
+    const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/jpeg', mid))
+    if (!blob) break
+    if (blob.size <= TARGET_BYTES) {
+      best = blob
+      lo = mid // try higher quality
+    } else {
+      hi = mid // try lower quality
+    }
+  }
+
+  // If even 0.5 is too large, just use 0.5 (rare for 1080px crops)
+  if (!best) {
+    best = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/jpeg', 0.5))
+  }
+
+  return best!
 }
 
 export default function AvatarCropModal({ imageSrc, onConfirm, onCancel }: Props) {
