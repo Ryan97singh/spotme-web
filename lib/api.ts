@@ -94,10 +94,32 @@ export async function updateProfile(userId: string, updates: Partial<Profile>) {
 
 export async function uploadAvatar(userId: string, file: File): Promise<string | null> {
   const supabase = getSupabase()
-  const ext = file.name.split('.').pop()
-  const path = `${userId}/avatar.${ext}`
 
-  const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
+  // Convert non-web-safe formats (HEIC, HEIF, TIFF, BMP) to JPEG via canvas
+  const needsConvert = /\.(heic|heif|tiff?|bmp)$/i.test(file.name)
+  let uploadFile = file
+  let path = `${userId}/avatar.jpg`
+
+  if (needsConvert) {
+    try {
+      const bitmap = await createImageBitmap(file)
+      const canvas = document.createElement('canvas')
+      canvas.width = bitmap.width
+      canvas.height = bitmap.height
+      canvas.getContext('2d')!.drawImage(bitmap, 0, 0)
+      const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/jpeg', 0.92))
+      if (blob) uploadFile = new File([blob], 'avatar.jpg', { type: 'image/jpeg' })
+    } catch {
+      // createImageBitmap may not support HEIC on some browsers — proceed with original
+      path = `${userId}/avatar.${file.name.split('.').pop()}`
+      uploadFile = file
+    }
+  } else {
+    const ext = file.name.split('.').pop() ?? 'jpg'
+    path = `${userId}/avatar.${ext}`
+  }
+
+  const { error } = await supabase.storage.from('avatars').upload(path, uploadFile, { upsert: true, contentType: uploadFile.type || 'image/jpeg' })
   if (error) return null
 
   const { data } = supabase.storage.from('avatars').getPublicUrl(path)
