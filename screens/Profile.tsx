@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { CheckCircle, Edit2, Activity, Zap, Settings, ChevronRight, Camera } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { getMyProfile, uploadAvatar, updateProfile, type Profile } from '@/lib/api'
+import AvatarCropModal from '@/components/AvatarCropModal'
 
 const WEEK_DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
@@ -14,6 +15,7 @@ export default function Profile() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [cropSrc, setCropSrc] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -24,16 +26,32 @@ export default function Profile() {
     })
   }, [user])
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Step 1: user picks a file → show crop modal
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || !user) return
+    if (!file) return
+    // Reset input so same file can be re-selected
+    e.target.value = ''
+    const url = URL.createObjectURL(file)
+    setCropSrc(url)
+  }
+
+  // Step 2: crop confirmed → upload the cropped blob
+  const handleCropConfirm = async (blob: Blob) => {
+    if (!user) return
+    setCropSrc(null)
     setUploading(true)
+    const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' })
     const url = await uploadAvatar(user.id, file)
     if (url) {
       await updateProfile(user.id, { avatar_url: url })
       setProfile((prev) => prev ? { ...prev, avatar_url: url } : prev)
     }
     setUploading(false)
+  }
+
+  const handleCropCancel = () => {
+    setCropSrc(null)
   }
 
   if (loading) {
@@ -102,7 +120,8 @@ export default function Profile() {
             : <Camera size={16} color="#fff" />
           }
         </button>
-        <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
+        <input ref={fileRef} type="file" accept="image/*,image/heic,image/heif" style={{ display: 'none' }} onChange={handleFileSelect} />
+        {cropSrc && <AvatarCropModal imageSrc={cropSrc} onConfirm={handleCropConfirm} onCancel={handleCropCancel} />}
       </div>
 
       {/* Content */}
