@@ -25,6 +25,7 @@ interface StoreState {
   unreadCount: number
   user: User | null
   hasProfile: boolean
+  pendingAvatarFile: File | null
   go: (screen: Screen) => void
   openChat: (userId: string) => void
   showMatch: () => void
@@ -32,6 +33,7 @@ interface StoreState {
   setUnread: (count: number) => void
   setUser: (user: User | null) => void
   setHasProfile: (v: boolean) => void
+  setPendingAvatar: (file: File | null) => void
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -41,6 +43,7 @@ export const useStore = create<StoreState>((set) => ({
   unreadCount: 3,
   user: null,
   hasProfile: false,
+  pendingAvatarFile: null,
 
   go: (screen) => set({ screen }),
 
@@ -53,4 +56,5 @@ export const useStore = create<StoreState>((set) => ({
   setUnread: (count) => set({ unreadCount: count }),
   setUser: (user) => set({ user }),
   setHasProfile: (hasProfile) => set({ hasProfile }),
+  setPendingAvatar: (pendingAvatarFile) => set({ pendingAvatarFile }),
 }))

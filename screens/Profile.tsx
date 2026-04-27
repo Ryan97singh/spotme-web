@@ -13,6 +13,8 @@ const WEEK_INTENSITY = [85, 0, 70, 90, 0, 55, 40]
 export default function Profile() {
   const go = useStore((s) => s.go)
   const user = useStore((s) => s.user)
+  const pendingAvatarFile = useStore((s) => s.pendingAvatarFile)
+  const setPendingAvatar = useStore((s) => s.setPendingAvatar)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
@@ -37,6 +39,34 @@ export default function Profile() {
       setLoading(false)
     })
   }, [user])
+
+  // Auto-upload photo queued during onboarding
+  useEffect(() => {
+    if (!pendingAvatarFile || !user || loading) return
+    setPendingAvatar(null) // clear immediately so it doesn't re-run
+
+    const runUpload = async () => {
+      showToast('Uploading profile photo…', 'loading')
+      setUploading(true)
+      const localUrl = URL.createObjectURL(pendingAvatarFile)
+      setPreviewUrl(localUrl)
+
+      const url = await uploadAvatar(user.id, pendingAvatarFile)
+      if (url) {
+        await updateProfile(user.id, { avatar_url: url })
+        setProfile((prev) => prev ? { ...prev, avatar_url: url } : prev)
+        setPreviewUrl(null)
+        showToast('Profile photo saved!', 'success', 3000)
+      } else {
+        setPreviewUrl(null)
+        showToast('Photo upload failed — tap the camera to retry.', 'error', 4000)
+      }
+      setUploading(false)
+    }
+
+    runUpload()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAvatarFile, user, loading])
 
   // Step 1: user picks a file → show crop modal (converts HEIC to JPEG first)
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {

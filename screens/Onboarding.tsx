@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ArrowRight, Camera, Info, X } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { getSupabase } from '@/lib/supabase'
-import { uploadAvatar } from '@/lib/api'
 
 const TRAINING_GOALS = [
   'Strength', 'Cardio', 'HIIT', 'CrossFit',
@@ -17,7 +16,7 @@ const TIME_SLOTS = ['Early AM', 'Morning', 'Lunch', 'Evening', 'Night']
 const SCREENS: Array<'ob1' | 'ob2' | 'ob3' | 'ob4'> = ['ob1', 'ob2', 'ob3', 'ob4']
 
 export default function Onboarding() {
-  const { go, setHasProfile, user } = useStore()
+  const { go, setHasProfile, user, setPendingAvatar } = useStore()
   const screen = useStore((s) => s.screen)
   const stepIndex = SCREENS.indexOf(screen as 'ob1' | 'ob2' | 'ob3' | 'ob4')
   const step = stepIndex + 1
@@ -74,14 +73,7 @@ export default function Onboarding() {
       if (user) {
         const supabase = getSupabase()
 
-        // Upload first photo as avatar if provided
-        let avatarUrl: string | undefined
-        const firstFile = photoFiles[0]
-        if (firstFile) {
-          const url = await uploadAvatar(user.id, firstFile)
-          if (url) avatarUrl = url
-        }
-
+        // Save profile — photo upload happens on Profile screen via pendingAvatarFile
         await supabase.from('profiles').upsert({
           id: user.id,
           full_name: (user.user_metadata?.full_name as string) || 'Athlete',
@@ -91,8 +83,11 @@ export default function Onboarding() {
           bio,
           gym_name: gymName,
           is_active: true,
-          ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
         })
+
+        // Queue the selected photo for Profile to upload
+        if (photoFiles[0]) setPendingAvatar(photoFiles[0])
+
         setHasProfile(true)
       }
       go('discover')
