@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ArrowRight, Camera, Info } from 'lucide-react'
+import { ChevronLeft, ArrowRight, Camera, Info, X } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { getSupabase } from '@/lib/supabase'
+import { uploadAvatar } from '@/lib/api'
 
 const TRAINING_GOALS = [
   'Strength', 'Cardio', 'HIIT', 'CrossFit',
@@ -26,8 +27,10 @@ export default function Onboarding() {
   // Step 2
   const [trainFreq, setTrainFreq] = useState(4)
   const [selectedTimes, setSelectedTimes] = useState<string[]>([])
-  // Step 3 — photo slots
-  const [photos] = useState<(string | null)[]>([null, null, null])
+  // Step 3 — photo slots (local preview URLs)
+  const [photos, setPhotos] = useState<(string | null)[]>([null, null, null])
+  const [photoFiles, setPhotoFiles] = useState<(File | null)[]>([null, null, null])
+  const fileRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)]
   // Step 4
   const [bio, setBio] = useState('')
   const [gymName, setGymName] = useState('')
@@ -43,6 +46,24 @@ export default function Onboarding() {
     )
   }
 
+  const handlePhotoPick = (slotIndex: number) => {
+    fileRefs[slotIndex].current?.click()
+  }
+
+  const handlePhotoChange = (slotIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    const url = URL.createObjectURL(file)
+    setPhotos((prev) => { const n = [...prev]; n[slotIndex] = url; return n })
+    setPhotoFiles((prev) => { const n = [...prev]; n[slotIndex] = file; return n })
+  }
+
+  const removePhoto = (slotIndex: number) => {
+    setPhotos((prev) => { const n = [...prev]; n[slotIndex] = null; return n })
+    setPhotoFiles((prev) => { const n = [...prev]; n[slotIndex] = null; return n })
+  }
+
   const handleBack = () => {
     if (step === 1) go('register')
     else go(SCREENS[stepIndex - 1])
@@ -52,6 +73,15 @@ export default function Onboarding() {
     if (step === 4) {
       if (user) {
         const supabase = getSupabase()
+
+        // Upload first photo as avatar if provided
+        let avatarUrl: string | undefined
+        const firstFile = photoFiles[0]
+        if (firstFile) {
+          const url = await uploadAvatar(user.id, firstFile)
+          if (url) avatarUrl = url
+        }
+
         await supabase.from('profiles').upsert({
           id: user.id,
           full_name: (user.user_metadata?.full_name as string) || 'Athlete',
@@ -61,6 +91,7 @@ export default function Onboarding() {
           bio,
           gym_name: gymName,
           is_active: true,
+          ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
         })
         setHasProfile(true)
       }
@@ -295,52 +326,98 @@ export default function Onboarding() {
                 </p>
               </div>
 
+              {/* Hidden file inputs */}
+              {[0, 1, 2].map((i) => (
+                <input
+                  key={i}
+                  ref={fileRefs[i]}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={(e) => handlePhotoChange(i, e)}
+                />
+              ))}
+
               {/* Photo slots */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 {/* Main large slot */}
                 <div
+                  onClick={() => handlePhotoPick(0)}
                   style={{
                     gridColumn: '1 / -1',
                     aspectRatio: '4 / 3',
                     borderRadius: 16,
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '2px dashed rgba(255,255,255,0.12)',
+                    background: photos[0] ? 'transparent' : 'rgba(255,255,255,0.04)',
+                    border: photos[0] ? 'none' : '2px dashed rgba(255,255,255,0.12)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 10,
                     cursor: 'pointer',
+                    position: 'relative',
+                    overflow: 'hidden',
                   }}
                 >
-                  <span style={{ fontSize: 40 }}>🏋️</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Camera size={16} color="var(--volt)" />
-                    <span style={{ color: 'var(--volt)', fontWeight: 600, fontSize: 13 }}>
-                      Main photo
-                    </span>
-                  </div>
+                  {photos[0] ? (
+                    <>
+                      <img src={photos[0]} alt="Main photo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 16 }} />
+                      <button
+                        onClick={(e) => { e.stopPropagation(); removePhoto(0) }}
+                        style={{ position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <X size={14} color="#fff" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ fontSize: 40 }}>🏋️</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Camera size={16} color="var(--volt)" />
+                        <span style={{ color: 'var(--volt)', fontWeight: 600, fontSize: 13 }}>
+                          Main photo
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Secondary slots */}
                 {[1, 2].map((slot) => (
                   <div
                     key={slot}
+                    onClick={() => handlePhotoPick(slot)}
                     style={{
                       aspectRatio: '1',
                       borderRadius: 14,
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '2px dashed rgba(255,255,255,0.1)',
+                      background: photos[slot] ? 'transparent' : 'rgba(255,255,255,0.04)',
+                      border: photos[slot] ? 'none' : '2px dashed rgba(255,255,255,0.1)',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: 8,
                       cursor: 'pointer',
+                      position: 'relative',
+                      overflow: 'hidden',
                     }}
                   >
-                    <span style={{ fontSize: 28 }}>{slot === 1 ? '💪' : '🏃'}</span>
-                    <Camera size={14} color="rgba(255,255,255,0.3)" />
+                    {photos[slot] ? (
+                      <>
+                        <img src={photos[slot]!} alt={`Photo ${slot}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }} />
+                        <button
+                          onClick={(e) => { e.stopPropagation(); removePhoto(slot) }}
+                          style={{ position: 'absolute', top: 6, right: 6, width: 24, height: 24, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <X size={12} color="#fff" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ fontSize: 28 }}>{slot === 1 ? '💪' : '🏃'}</span>
+                        <Camera size={14} color="rgba(255,255,255,0.3)" />
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
