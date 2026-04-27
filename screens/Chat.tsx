@@ -110,7 +110,7 @@ export default function Chat() {
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
           <div style={{ position: 'relative' }}>
-            <img src={displayAvatar} alt={displayName} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--rose)' }} />
+            <img src={displayAvatar} alt={displayName} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--volt)' }} />
           </div>
           <div>
             <p style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 700, fontSize: 15, color: '#fff', lineHeight: 1.2 }}>
@@ -151,7 +151,7 @@ export default function Chat() {
       <div ref={scrollRef} className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {loading ? (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ width: 28, height: 28, border: '3px solid rgba(255,107,157,0.2)', borderTopColor: 'var(--rose)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+            <div style={{ width: 28, height: 28, border: '3px solid rgba(200,255,0,0.2)', borderTopColor: 'var(--volt)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
           </div>
         ) : messages.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 20px', color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>
@@ -175,11 +175,11 @@ export default function Chat() {
                   <div style={{
                     padding: '10px 14px',
                     borderRadius: isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                    background: isMe ? 'var(--rose)' : 'var(--elevated)',
-                    color: '#fff',
+                    background: isMe ? 'var(--volt)' : 'var(--elevated)',
+                    color: isMe ? '#0D0B14' : '#fff',
                     fontSize: 14,
                     lineHeight: 1.5,
-                    boxShadow: isMe ? '0 2px 12px rgba(255,107,157,0.3)' : '0 2px 8px rgba(0,0,0,0.3)',
+                    boxShadow: isMe ? '0 2px 12px rgba(200,255,0,0.25)' : '0 2px 8px rgba(0,0,0,0.3)',
                   }}>
                     {msg.text}
                   </div>
@@ -212,9 +212,9 @@ export default function Chat() {
         />
         <button
           onClick={() => handleSend()}
-          style={{ width: 40, height: 40, borderRadius: '50%', background: input.trim() ? 'var(--rose)' : 'rgba(255,255,255,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() ? 'pointer' : 'default', boxShadow: input.trim() ? '0 0 16px rgba(255,107,157,0.4)' : 'none', transition: 'all 0.15s ease', flexShrink: 0 }}
+          style={{ width: 40, height: 40, borderRadius: '50%', background: input.trim() ? 'var(--volt)' : 'rgba(255,255,255,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() ? 'pointer' : 'default', boxShadow: input.trim() ? '0 0 16px rgba(200,255,0,0.35)' : 'none', transition: 'all 0.15s ease', flexShrink: 0 }}
         >
-          <Send size={17} color={input.trim() ? '#fff' : 'rgba(255,255,255,0.3)'} />
+          <Send size={17} color={input.trim() ? '#0D0B14' : 'rgba(255,255,255,0.3)'} />
         </button>
       </div>
 

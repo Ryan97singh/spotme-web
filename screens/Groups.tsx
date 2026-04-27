@@ -6,7 +6,7 @@ import { Plus, MapPin, Users, Clock } from 'lucide-react'
 import { GROUPS } from '@/lib/data'
 import type { Group } from '@/lib/data'
 
-const FILTERS = ['All', 'Running', 'Lifting', 'HIIT', 'Yoga', 'CrossFit']
+const FILTERS = ['Near you', 'Joined', 'Hosting']
 
 const TYPE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   Running: { bg: 'rgba(0,194,255,0.1)', text: 'var(--blue)', border: 'rgba(0,194,255,0.25)' },
@@ -17,12 +17,14 @@ const TYPE_COLORS: Record<string, { bg: string; text: string; border: string }> 
 }
 
 export default function Groups() {
-  const [activeFilter, setActiveFilter] = useState('All')
+  const [activeFilter, setActiveFilter] = useState('Near you')
   const [groups, setGroups] = useState<Group[]>(GROUPS)
 
-  const filtered = activeFilter === 'All'
-    ? groups
-    : groups.filter((g) => g.type === activeFilter)
+  const filtered = activeFilter === 'Joined'
+    ? groups.filter((g) => g.joined)
+    : activeFilter === 'Hosting'
+      ? groups.filter((g) => g.joined && g.members < 10)
+      : groups
 
   const toggleJoin = (id: string) => {
     setGroups((prev) =>
@@ -78,30 +80,27 @@ export default function Groups() {
           </button>
         </div>
 
-        {/* Filter chips */}
-        <div
-          className="no-scrollbar"
-          style={{ display: 'flex', gap: 8, overflowX: 'auto' }}
-        >
+        {/* Segmented control */}
+        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 3, gap: 2 }}>
           {FILTERS.map((f) => {
             const active = activeFilter === f
-            const style = f !== 'All' ? TYPE_COLORS[f] : null
             return (
               <button
                 key={f}
                 onClick={() => setActiveFilter(f)}
                 style={{
-                  padding: '7px 16px',
-                  borderRadius: 20,
-                  border: `1.5px solid ${active ? (style?.border ?? 'rgba(200,255,0,0.4)') : 'rgba(255,255,255,0.08)'}`,
-                  background: active ? (style?.bg ?? 'var(--volt-dim)') : 'rgba(255,255,255,0.03)',
-                  color: active ? (style?.text ?? 'var(--volt)') : 'rgba(255,255,255,0.5)',
+                  flex: 1,
+                  padding: '8px 0',
+                  borderRadius: 10,
+                  border: 'none',
+                  background: active ? 'var(--volt)' : 'transparent',
+                  color: active ? '#0D0B14' : 'rgba(255,255,255,0.45)',
                   fontWeight: active ? 700 : 500,
                   fontSize: 13,
                   cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
                   transition: 'all 0.15s ease',
+                  fontFamily: 'var(--font-ui)',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {f}

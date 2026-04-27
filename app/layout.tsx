@@ -14,8 +14,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <div id="app" style={{ width:'100%',height:'100%',display:'flex',alignItems:'flex-start',justifyContent:'center' }}>
           <div id="shell" style={{ width:'100%',maxWidth:430,height:'100dvh',background:'var(--bg)',position:'relative',overflow:'hidden',display:'flex',flexDirection:'column',margin:'0 auto' }}>
             {children}

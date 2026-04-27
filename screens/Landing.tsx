@@ -82,13 +82,57 @@ export default function Landing() {
         {/* Hero */}
         <div
           style={{
+            position: 'relative',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             padding: '72px 28px 40px',
             textAlign: 'center',
+            overflow: 'hidden',
           }}
         >
+          {/* Hero background photo */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'url(https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80) center/cover no-repeat',
+            opacity: 0.18,
+            zIndex: 0,
+          }} />
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(to bottom, rgba(13,11,20,0.3) 0%, rgba(13,11,20,0.85) 80%, rgba(13,11,20,1) 100%)',
+            zIndex: 0,
+          }} />
+
+          {/* Sign in top-right */}
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            onClick={() => go('login')}
+            style={{
+              position: 'absolute',
+              top: 52,
+              right: 20,
+              padding: '7px 16px',
+              borderRadius: 20,
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.18)',
+              color: '#fff',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              backdropFilter: 'blur(12px)',
+              zIndex: 2,
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            Sign in
+          </motion.button>
+
+          <div style={{ position: 'relative', zIndex: 1 }}>
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -199,26 +243,6 @@ export default function Landing() {
             )}
           </motion.div>
 
-          {/* Sign in link */}
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            onClick={() => go('login')}
-            style={{
-              marginTop: 16,
-              background: 'none',
-              border: 'none',
-              color: 'rgba(255,255,255,0.45)',
-              fontSize: 14,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
-          >
-            Already in? Sign in <ArrowRight size={14} />
-          </motion.button>
 
           {/* Feature chips */}
           <motion.div
@@ -250,6 +274,7 @@ export default function Landing() {
               </span>
             ))}
           </motion.div>
+          </div>{/* /inner zIndex wrapper */}
         </div>
 
         {/* Feature cards */}

@@ -1,6 +1,6 @@
 'use client'
 
-import { Flame, MessageCircle, Users, User } from 'lucide-react'
+import { Flame, MessageSquare, Users, User, MapPin } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import type { Screen } from '@/lib/store'
 
@@ -8,14 +8,14 @@ interface NavTab {
   screen: Screen
   label: string
   icon: React.ComponentType<{ size: number; strokeWidth?: number; color?: string }>
-  activeColor: string
 }
 
 const TABS: NavTab[] = [
-  { screen: 'discover', label: 'Discover', icon: Flame, activeColor: 'var(--volt)' },
-  { screen: 'matches', label: 'Matches', icon: MessageCircle, activeColor: 'var(--rose)' },
-  { screen: 'groups', label: 'Groups', icon: Users, activeColor: 'var(--volt)' },
-  { screen: 'profile', label: 'Profile', icon: User, activeColor: 'var(--volt)' },
+  { screen: 'discover', label: 'Discover', icon: Flame },
+  { screen: 'groups', label: 'Groups', icon: Users },
+  { screen: 'map', label: 'Nearby', icon: MapPin },
+  { screen: 'matches', label: 'Chats', icon: MessageSquare },
+  { screen: 'profile', label: 'Me', icon: User },
 ]
 
 export default function BottomNav() {
@@ -41,7 +41,7 @@ export default function BottomNav() {
       {TABS.map((tab) => {
         const active = screen === tab.screen
         const Icon = tab.icon
-        const isMatches = tab.screen === 'matches'
+        const isChats = tab.screen === 'matches'
 
         return (
           <button
@@ -73,8 +73,8 @@ export default function BottomNav() {
                   width: 28,
                   height: 2,
                   borderRadius: 2,
-                  background: tab.activeColor,
-                  boxShadow: `0 0 8px ${tab.activeColor}`,
+                  background: 'var(--volt)',
+                  boxShadow: '0 0 8px var(--volt-glow)',
                 }}
               />
             )}
@@ -84,27 +84,11 @@ export default function BottomNav() {
               <Icon
                 size={22}
                 strokeWidth={active ? 2.5 : 1.8}
+                color={active ? 'var(--volt)' : 'rgba(255,255,255,0.35)'}
               />
-              <span
-                style={{
-                  color: active ? tab.activeColor : 'rgba(255,255,255,0.35)',
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  pointerEvents: 'none',
-                }}
-              >
-                <Icon
-                  size={22}
-                  strokeWidth={active ? 2.5 : 1.8}
-                  color={active ? tab.activeColor : 'rgba(255,255,255,0.35)'}
-                />
-              </span>
 
-              {/* Unread badge for matches */}
-              {isMatches && unreadCount > 0 && (
+              {/* Unread badge for chats */}
+              {isChats && unreadCount > 0 && (
                 <span
                   style={{
                     position: 'absolute',
@@ -113,8 +97,8 @@ export default function BottomNav() {
                     minWidth: 16,
                     height: 16,
                     borderRadius: 8,
-                    background: 'var(--rose)',
-                    color: '#fff',
+                    background: 'var(--volt)',
+                    color: '#0D0B14',
                     fontSize: 10,
                     fontWeight: 700,
                     display: 'flex',
@@ -122,7 +106,6 @@ export default function BottomNav() {
                     justifyContent: 'center',
                     padding: '0 4px',
                     border: '1.5px solid var(--bg)',
-                    boxShadow: '0 0 8px var(--rose-glow)',
                   }}
                 >
                   {unreadCount}
@@ -135,7 +118,7 @@ export default function BottomNav() {
                 fontSize: 10,
                 fontWeight: active ? 600 : 400,
                 letterSpacing: '0.02em',
-                color: active ? tab.activeColor : 'rgba(255,255,255,0.35)',
+                color: active ? 'var(--volt)' : 'rgba(255,255,255,0.35)',
                 transition: 'color 0.15s ease',
                 lineHeight: 1,
                 fontFamily: 'var(--font-ui)',

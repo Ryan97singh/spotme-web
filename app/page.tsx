@@ -16,8 +16,9 @@ import Chat from '@/screens/Chat'
 import Profile from '@/screens/Profile'
 import Leaderboard from '@/screens/Leaderboard'
 import Groups from '@/screens/Groups'
+import Map from '@/screens/Map'
 
-const APP_SCREENS: Screen[] = ['discover', 'matches', 'chat', 'profile', 'leaderboard', 'groups']
+const APP_SCREENS: Screen[] = ['discover', 'matches', 'chat', 'profile', 'leaderboard', 'groups', 'map']
 const OB_SCREENS: Screen[] = ['ob1', 'ob2', 'ob3', 'ob4']
 
 function ScreenRenderer({ screen }: { screen: Screen }) {
@@ -47,7 +48,7 @@ function ScreenRenderer({ screen }: { screen: Screen }) {
     case 'settings':
       return <SettingsPlaceholder />
     case 'map':
-      return <MapPlaceholder />
+      return <Map />
     default:
       return <Landing />
   }
@@ -92,44 +93,6 @@ function SettingsPlaceholder() {
   )
 }
 
-function MapPlaceholder() {
-  const go = useStore((s) => s.go)
-  return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--bg)',
-        gap: 16,
-      }}
-    >
-      <span style={{ fontSize: 48 }}>🗺️</span>
-      <h2 style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 800, fontSize: 24, color: '#fff' }}>
-        Gym Map
-      </h2>
-      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>Coming soon</p>
-      <button
-        onClick={() => go('discover')}
-        style={{
-          padding: '12px 24px',
-          borderRadius: 12,
-          background: 'var(--volt)',
-          border: 'none',
-          color: '#0D0B14',
-          fontWeight: 700,
-          fontSize: 14,
-          cursor: 'pointer',
-          fontFamily: 'Space Grotesk, sans-serif',
-        }}
-      >
-        Back to discover
-      </button>
-    </div>
-  )
-}
 
 export default function Page() {
   const screen = useStore((s) => s.screen)

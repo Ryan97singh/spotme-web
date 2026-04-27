@@ -3,8 +3,21 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useStore } from '@/lib/store'
-import { MessageCircle } from 'lucide-react'
+import { MessageSquare } from 'lucide-react'
 import { getMatches, type MatchWithProfiles } from '@/lib/api'
+
+const NOW = new Date().toISOString()
+const MOCK_NEW: MatchWithProfiles[] = [
+  { match_id: 'm1', created_at: NOW, is_super: false, user1_id: 'x1', user2_id: 'me', user1_name: 'Alex', user2_name: 'Me', user1_avatar: 'https://i.pravatar.cc/200?u=m1', user2_avatar: null, last_message: null, last_message_at: null },
+  { match_id: 'm2', created_at: NOW, is_super: false, user1_id: 'x2', user2_id: 'me', user1_name: 'Morgan', user2_name: 'Me', user1_avatar: 'https://i.pravatar.cc/200?u=m2', user2_avatar: null, last_message: null, last_message_at: null },
+  { match_id: 'm3', created_at: NOW, is_super: false, user1_id: 'x3', user2_id: 'me', user1_name: 'Jordan', user2_name: 'Me', user1_avatar: 'https://i.pravatar.cc/200?u=m3', user2_avatar: null, last_message: null, last_message_at: null },
+]
+
+const MOCK_MSGS: MatchWithProfiles[] = [
+  { match_id: 'm4', created_at: NOW, is_super: false, user1_id: 'x4', user2_id: 'me', user1_name: 'Riley Chen', user2_name: 'Me', user1_avatar: 'https://i.pravatar.cc/200?u=m4', user2_avatar: null, last_message: 'Are you hitting legs tomorrow? 💪', last_message_at: new Date(Date.now() - 8 * 60000).toISOString() },
+  { match_id: 'm5', created_at: NOW, is_super: false, user1_id: 'x5', user2_id: 'me', user1_name: 'Casey Park', user2_name: 'Me', user1_avatar: 'https://i.pravatar.cc/200?u=m5', user2_avatar: null, last_message: 'New PR on bench today 🔥', last_message_at: new Date(Date.now() - 2 * 3600000).toISOString() },
+  { match_id: 'm6', created_at: NOW, is_super: false, user1_id: 'x6', user2_id: 'me', user1_name: 'Sam Torres', user2_name: 'Me', user1_avatar: 'https://i.pravatar.cc/200?u=m6', user2_avatar: null, last_message: 'See you at 6 AM!', last_message_at: new Date(Date.now() - 24 * 3600000).toISOString() },
+]
 
 function timeAgo(dateStr: string | null): string {
   if (!dateStr) return ''
@@ -25,7 +38,7 @@ export default function Matches() {
   useEffect(() => {
     if (!user) { setLoading(false); return }
     getMatches(user.id).then((data) => {
-      setMatches(data)
+      setMatches(data.length > 0 ? data : [...MOCK_NEW, ...MOCK_MSGS])
       setLoading(false)
     })
   }, [user])
@@ -45,19 +58,19 @@ export default function Matches() {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--bg)', overflow: 'hidden' }}>
       <div className="glass-bar" style={{ padding: '52px 20px 14px', flexShrink: 0 }}>
         <h1 style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 800, fontSize: 26, color: '#fff', letterSpacing: '-0.02em' }}>
-          Matches
+          Chats
         </h1>
       </div>
 
       <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', paddingBottom: 80 }}>
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
-            <div style={{ width: 32, height: 32, border: '3px solid rgba(255,107,157,0.2)', borderTopColor: 'var(--rose)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+            <div style={{ width: 32, height: 32, border: '3px solid rgba(200,255,0,0.2)', borderTopColor: 'var(--volt)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
           </div>
         ) : matches.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 32px', textAlign: 'center', gap: 16 }}>
-            <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'var(--rose-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <MessageCircle size={32} color="var(--rose)" />
+            <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'var(--volt-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <MessageSquare size={32} color="var(--volt)" />
             </div>
             <h2 style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 700, fontSize: 20, color: '#fff' }}>No matches yet</h2>
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, lineHeight: 1.5 }}>Start swiping to find your training partner</p>
@@ -81,7 +94,7 @@ export default function Matches() {
                         onClick={() => openChat(o.id)}
                         style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0 }}
                       >
-                        <div style={{ width: 68, height: 68, borderRadius: '50%', padding: 2.5, background: 'linear-gradient(135deg, var(--rose), var(--volt))' }}>
+                        <div style={{ width: 68, height: 68, borderRadius: '50%', padding: 2.5, background: 'linear-gradient(135deg, var(--volt), var(--volt2))' }}>
                           <img
                             src={o.avatar ?? `https://i.pravatar.cc/200?u=${o.id}`}
                             alt={o.name}

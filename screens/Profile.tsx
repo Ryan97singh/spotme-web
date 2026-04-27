@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { CheckCircle, Edit2, Activity, Zap, Settings, ChevronRight, Camera } from 'lucide-react'
+import { CheckCircle, Edit2, Zap, Settings, ChevronRight, Camera } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { getMyProfile, uploadAvatar, updateProfile, type Profile } from '@/lib/api'
 import AvatarCropModal from '@/components/AvatarCropModal'
 
 const WEEK_DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+const WEEK_INTENSITY = [85, 0, 70, 90, 0, 55, 40]
 
 export default function Profile() {
   const go = useStore((s) => s.go)
@@ -197,51 +198,63 @@ export default function Profile() {
           Edit profile
         </button>
 
-        {/* Stats grid */}
+        {/* PR grid — 2 column */}
         <div style={{ marginBottom: 24 }}>
-          <h2 style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 700, fontSize: 13, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
-            Stats
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-            {stats.slice(0, 3).map((s) => (
-              <div key={s.label} className="glass" style={{ borderRadius: 14, padding: '14px 12px', textAlign: 'center' }}>
-                <p style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 800, fontSize: 20, color: s.color, marginBottom: 2 }}>{s.value}</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <h2 style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 700, fontSize: 13, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Personal Records
+            </h2>
+            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--volt)', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Edit2 size={12} /> Edit
+            </button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {stats.slice(0, 4).map((s) => (
+              <div key={s.label} className="glass" style={{ borderRadius: 14, padding: '16px 14px' }}>
+                <p style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 800, fontSize: 28, color: s.color, marginBottom: 2, letterSpacing: '-0.02em' }}>{s.value}</p>
                 <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{s.label}</p>
               </div>
             ))}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
-            {stats.slice(3).map((s) => (
-              <div key={s.label} className="glass" style={{ borderRadius: 14, padding: '14px 12px', textAlign: 'center' }}>
-                <p style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 800, fontSize: 20, color: s.color, marginBottom: 2 }}>{s.value}</p>
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{s.label}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10, marginTop: 10 }}>
+            {stats.slice(4).map((s) => (
+              <div key={s.label} className="glass" style={{ borderRadius: 14, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{s.label}</p>
+                <p style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 800, fontSize: 22, color: s.color }}>{s.value}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Weekly workout strip */}
+        {/* Weekly workout bar chart */}
         <div style={{ marginBottom: 24 }}>
           <h2 style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 700, fontSize: 13, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
             This week
           </h2>
-          <div className="glass" style={{ borderRadius: 16, padding: '16px', display: 'flex', justifyContent: 'space-between' }}>
+          <div className="glass" style={{ borderRadius: 16, padding: '16px 16px 12px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 6, height: 88 }}>
             {WEEK_DAYS.map((day, i) => {
+              const intensity = WEEK_INTENSITY[i]
               const today = new Date().getDay()
               const dayMap = [6, 0, 1, 2, 3, 4, 5]
-              const trained = i < dayMap[today]
+              const isToday = i === dayMap[today]
+              const barH = intensity > 0 ? Math.max(10, (intensity / 100) * 44) : 4
               return (
-                <div key={`${day}-${i}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: '50%',
-                    background: trained ? 'var(--volt)' : 'rgba(255,255,255,0.05)',
-                    border: `2px solid ${trained ? 'rgba(200,255,0,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: trained ? '0 0 12px rgba(200,255,0,0.3)' : 'none',
-                  }}>
-                    {trained && <Activity size={14} color="#0D0B14" strokeWidth={2.5} />}
+                <div key={`${day}-${i}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
+                  <div style={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: 44 }}>
+                    <div style={{
+                      width: '100%',
+                      height: barH,
+                      borderRadius: 4,
+                      background: intensity > 0
+                        ? isToday
+                          ? 'var(--volt)'
+                          : 'rgba(200,255,0,0.45)'
+                        : 'rgba(255,255,255,0.07)',
+                      boxShadow: intensity > 0 && isToday ? '0 0 8px rgba(200,255,0,0.4)' : 'none',
+                      transition: 'height 0.3s ease',
+                    }} />
                   </div>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontWeight: 500 }}>{day}</span>
+                  <span style={{ fontSize: 10, color: isToday ? 'var(--volt)' : 'rgba(255,255,255,0.3)', fontWeight: isToday ? 700 : 500 }}>{day}</span>
                 </div>
               )
             })}

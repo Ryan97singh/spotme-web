@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { SlidersHorizontal, MessageCircle, RefreshCw } from 'lucide-react'
+import { SlidersHorizontal, Bell, RefreshCw } from 'lucide-react'
 import Logo from '@/components/Logo'
 import SwipeCard from '@/components/SwipeCard'
 import MatchOverlay from '@/components/MatchOverlay'
@@ -139,9 +139,9 @@ export default function Discover() {
               padding: 4,
               display: 'flex',
             }}
-            onClick={() => go('matches')}
+            onClick={() => {}}
           >
-            <MessageCircle size={22} />
+            <Bell size={22} />
             {unreadCount > 0 && (
               <span
                 style={{
@@ -151,8 +151,8 @@ export default function Discover() {
                   width: 14,
                   height: 14,
                   borderRadius: '50%',
-                  background: 'var(--rose)',
-                  color: '#fff',
+                  background: 'var(--volt)',
+                  color: '#0D0B14',
                   fontSize: 9,
                   fontWeight: 700,
                   display: 'flex',
