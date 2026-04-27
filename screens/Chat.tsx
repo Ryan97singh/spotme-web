@@ -203,7 +203,7 @@ export default function Chat() {
         </button>
         <input
           type="text"
-          placeholder={matchId ? 'Message...' : 'No match found yet'}
+          placeholder="Message..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}

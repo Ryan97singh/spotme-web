@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion'
-import { CheckCircle, Zap, X, Star, Heart } from 'lucide-react'
+import { CheckCircle, Zap } from 'lucide-react'
 import type { Profile } from '@/lib/data'
 
 interface SwipeCardProps {
@@ -230,84 +230,6 @@ export default function SwipeCard({
         </div>
       </motion.div>
 
-      {/* Action buttons */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: -80,
-          left: 0,
-          right: 0,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: 20,
-          zIndex: 20,
-        }}
-      >
-        {/* Pass */}
-        <button
-          onClick={onPass}
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: '50%',
-            background: 'rgba(255,77,109,0.08)',
-            border: '1.5px solid var(--danger)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            transition: 'transform 0.15s ease, background 0.15s ease',
-          }}
-          onMouseDown={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.92)' }}
-          onMouseUp={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)' }}
-        >
-          <X size={22} color="var(--danger)" strokeWidth={2.5} />
-        </button>
-
-        {/* Super */}
-        <button
-          onClick={onSuper}
-          style={{
-            width: 52,
-            height: 52,
-            borderRadius: '50%',
-            background: 'rgba(255,176,32,0.08)',
-            border: '1.5px solid var(--warn)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            transition: 'transform 0.15s ease',
-          }}
-          onMouseDown={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.92)' }}
-          onMouseUp={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)' }}
-        >
-          <Star size={20} color="var(--warn)" fill="var(--warn)" />
-        </button>
-
-        {/* Like */}
-        <button
-          onClick={onLike}
-          style={{
-            width: 64,
-            height: 64,
-            borderRadius: '50%',
-            background: 'var(--rose)',
-            border: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            boxShadow: '0 0 24px rgba(255,107,157,0.5)',
-            transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-          }}
-          onMouseDown={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.92)' }}
-          onMouseUp={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)' }}
-        >
-          <Heart size={26} color="#fff" fill="#fff" />
-        </button>
-      </div>
     </div>
   )
 }

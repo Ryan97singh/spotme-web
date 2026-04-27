@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { SlidersHorizontal, Bell, RefreshCw } from 'lucide-react'
+import { SlidersHorizontal, Bell, RefreshCw, X, Star, Heart } from 'lucide-react'
 import Logo from '@/components/Logo'
 import SwipeCard from '@/components/SwipeCard'
 import MatchOverlay from '@/components/MatchOverlay'
@@ -256,6 +256,30 @@ export default function Discover() {
           </div>
         )}
       </div>
+
+      {/* Action buttons */}
+      {!loading && stack.length > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, padding: '10px 0 18px', flexShrink: 0 }}>
+          <button
+            onClick={handlePass}
+            style={{ width: 58, height: 58, borderRadius: '50%', background: 'rgba(255,77,109,0.08)', border: '1.5px solid var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          >
+            <X size={22} color="var(--danger)" strokeWidth={2.5} />
+          </button>
+          <button
+            onClick={handleSuper}
+            style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,176,32,0.08)', border: '1.5px solid var(--warn)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          >
+            <Star size={20} color="var(--warn)" fill="var(--warn)" />
+          </button>
+          <button
+            onClick={handleLike}
+            style={{ width: 66, height: 66, borderRadius: '50%', background: 'var(--rose)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 0 24px rgba(255,107,157,0.5)' }}
+          >
+            <Heart size={28} color="#fff" fill="#fff" />
+          </button>
+        </div>
+      )}
 
       {/* Match overlay */}
       <MatchOverlay matchedUserId={lastMatched} />
