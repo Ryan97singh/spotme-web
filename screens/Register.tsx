@@ -12,7 +12,9 @@ export default function Register() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -20,6 +22,7 @@ export default function Register() {
     if (!name.trim()) { setError('Enter your name'); return }
     if (!email) { setError('Enter your email'); return }
     if (password.length < 8) { setError('Password must be at least 8 characters'); return }
+    if (password !== confirmPassword) { setError('Passwords do not match'); return }
 
     setLoading(true)
     setError('')
@@ -244,6 +247,48 @@ export default function Register() {
               ))}
             </div>
           )}
+
+          <div>
+            <label style={labelStyle}>Confirm password</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showConfirm ? 'text' : 'password'}
+                placeholder="Re-enter password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+                style={{
+                  ...inputStyle,
+                  paddingRight: 48,
+                  borderColor: confirmPassword && confirmPassword !== password
+                    ? 'rgba(255,77,109,0.5)'
+                    : confirmPassword && confirmPassword === password
+                      ? 'rgba(200,255,0,0.4)'
+                      : 'rgba(255,255,255,0.08)',
+                }}
+              />
+              <button
+                onClick={() => setShowConfirm(!showConfirm)}
+                style={{
+                  position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center',
+                }}
+              >
+                {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {confirmPassword && confirmPassword !== password && (
+              <p style={{ fontSize: 12, color: 'var(--danger)', marginTop: 5, fontWeight: 500 }}>
+                Passwords don&apos;t match
+              </p>
+            )}
+            {confirmPassword && confirmPassword === password && (
+              <p style={{ fontSize: 12, color: 'var(--volt)', marginTop: 5, fontWeight: 500 }}>
+                ✓ Passwords match
+              </p>
+            )}
+          </div>
 
           <button
             onClick={handleCreate}
